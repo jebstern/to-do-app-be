@@ -12,11 +12,11 @@ let itemSchema = new Schema({
   },
   title: {
     type: String,
-    required: true
+    required: false
   },
   text: {
     type: String,
-    required: true
+    required: false
   },
   completed: {
     type: Boolean,

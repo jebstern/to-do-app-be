@@ -20,14 +20,14 @@ mongoose
     useUnifiedTopology: true,
     useFindAndModify: false
   })
-  .catch(error => console.log(error));
+  .catch(error => console.log("error:" + error));
 mongoose.Promise = global.Promise;
 let db = mongoose.connection;
 db.once("open", function callback() {
   console.log("Connected to MongoDB");
 });
 db.on("error", err => {
-  console.log(err);
+  console.log("error:" + err);
 });
 
 app.use(passport.initialize());
