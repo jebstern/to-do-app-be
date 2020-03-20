@@ -9,7 +9,7 @@ const app = express();
 const DB_USER_NAME = process.env.DB_USER_NAME;
 const DB_USER_PASSWORD = process.env.DB_USER_PASSWORD;
 const DEV_DB_URL = "mongodb://localhost/to-do";
-const PROD_DB_URL = `mongodb+srv://${DB_USER_NAME}:${DB_USER_PASSWORD}@cluster0-z1tm1.mongodb.net/rdr2map?retryWrites=true&w=majority`;
+const PROD_DB_URL = `mongodb+srv://${DB_USER_NAME}:${DB_USER_PASSWORD}@cluster0-z1tm1.mongodb.net/to-do?retryWrites=true&w=majority`;
 const mongoDB =
   process.env.NODE_ENV === "production" ? PROD_DB_URL : DEV_DB_URL;
 const PORT = process.env.PORT || 3000;
