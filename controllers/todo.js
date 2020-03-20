@@ -47,7 +47,7 @@ exports.add = function(req, res) {
   const newItem = req.body;
 
   Item.findOneAndUpdate(
-    {},
+    {id: ""},
     {
       id: v4(),
       dueDate: newItem.dueDate,
