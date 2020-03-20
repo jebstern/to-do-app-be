@@ -6,76 +6,68 @@ const { v4 } = require("uuid");
 exports.update = function(req, res) {
   const updatedItem = req.body;
 
-  const item = new Item({
-    id: updatedItem.id,
-    dueDate: updatedItem.dueDate,
-    title: updatedItem.title,
-    text: updatedItem.text,
-    completed: updatedItem.completed
-  });
-
-  var upsertData = item.toObject();
-
-  // Delete the _id property, otherwise Mongo will return a "Mod on _id not allowed" error
-  delete upsertData._id;
-
   Item.findOneAndUpdate(
     { id: updatedItem.id },
-    upsertData,
-    { upsert: true },
+    {
+      id: updatedItem.id,
+      dueDate: updatedItem.dueDate,
+      title: updatedItem.title,
+      text: updatedItem.text,
+      completed: updatedItem.completed
+    },
+    { new: true, fields: { _id: 0, __v: 0 } },
     function(err, doc) {
       if (err) {
         return res.status(500).send({ mode: "upsert", error: err });
       }
-      return res.status(200).send(upsertData);
+      return res.status(200).send(doc);
     }
   );
 };
 
 exports.items = function(req, res) {
-  Item.find({}, function(err, items) {
-    const clonedArray = JSON.parse(JSON.stringify(items));
-    clonedArray.forEach(item => {
-      delete item._id;
-      delete item.__v;
-    });
-    res.status(200).send(clonedArray);
+  Item.find({}, "-_id -__v", function(err, items) {
+    if (err) {
+      return res.status(500).send({ mode: "find", error: err });
+    }
+    res.status(200).send(items);
   });
 };
 
 exports.incomplete = function(req, res) {
-  Item.find({completed: false}, function(err, items) {
-    const clonedArray = JSON.parse(JSON.stringify(items));
-    clonedArray.forEach(item => {
-      delete item._id;
-      delete item.__v;
-    });
-    res.status(200).send(clonedArray);
+  Item.find({ completed: false }, "-_id -__v", function(err, items) {
+    if (err) {
+      return res.status(500).send({ mode: "find", error: err });
+    }
+    res.status(200).send(items);
   });
 };
 
 exports.add = function(req, res) {
   const newItem = req.body;
 
-  const item = new Item({
-    id: v4(),
-    dueDate: newItem.dueDate,
-    title: newItem.title,
-    text: newItem.text,
-    completed: false
-  });
-
-  item.save(function(err, obj) {
-    if (err) {
-      return res.status(500).send({ mode: "delete", error: err });
-    } else if (obj === null || obj === undefined) {
-      return res
-        .status(500)
-        .send({ "MongoDB error": "The specified document was not inserted!" });
-    } else {
-      res.status(200).send(removeMongoProperties(item));
+  Item.findOneAndUpdate(
+    {},
+    {
+      id: v4(),
+      dueDate: newItem.dueDate,
+      title: newItem.title,
+      text: newItem.text,
+      completed: false
+    },
+    { upsert: true, new: true, fields: { _id: 0, __v: 0 } },
+    function(err, doc) {
+      if (err) {
+        return res.status(500).send({ mode: "delete", error: err });
+      } else if (doc === null || doc === undefined) {
+        return res.status(500).send({
+          "MongoDB error": "The specified document was not inserted!"
+        });
+      } else {
+        res.status(200).send(doc);
+      }
     }
-  });
+  );
 };
 
 exports.delete = function(req, res) {
@@ -91,14 +83,6 @@ exports.delete = function(req, res) {
     }
   });
 };
-
-const removeMongoProperties = (item) => {
-  const obj = JSON.stringify(item)
-  let cloned = JSON.parse(obj);
-  delete cloned._id;
-  delete cloned.__v;
-  return cloned;
-}
 
 /*
 exports.get_user = function (req, res) {
